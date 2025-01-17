@@ -258,16 +258,16 @@ class AnthropicConfig(BaseConfig):
         new_stop: Optional[List[str]] = None
         if isinstance(stop, str):
             if (
-                stop == "\n"
-            ) and litellm.drop_params is True:  # anthropic doesn't allow whitespace characters as stop-sequences
+                stop.isspace() and litellm.drop_params is True
+            ):  # anthropic doesn't allow whitespace characters as stop-sequences
                 return new_stop
             new_stop = [stop]
         elif isinstance(stop, list):
             new_v = []
             for v in stop:
                 if (
-                    v == "\n"
-                ) and litellm.drop_params is True:  # anthropic doesn't allow whitespace characters as stop-sequences
+                    v.isspace() and litellm.drop_params is True
+                ):  # anthropic doesn't allow whitespace characters as stop-sequences
                     continue
                 new_v.append(v)
             if len(new_v) > 0:
@@ -668,7 +668,7 @@ class AnthropicConfig(BaseConfig):
         cache_read_input_tokens: int = 0
 
         model_response.created = int(time.time())
-        model_response.model = model
+        model_response.model = completion_response["model"]
         if "cache_creation_input_tokens" in _usage:
             cache_creation_input_tokens = _usage["cache_creation_input_tokens"]
             prompt_tokens += cache_creation_input_tokens
@@ -759,7 +759,7 @@ class AnthropicConfig(BaseConfig):
             prompt_caching_set=prompt_caching_set,
             pdf_used=pdf_used,
             api_key=api_key,
-            is_vertex_request=False,
+            is_vertex_request=optional_params.get("is_vertex_request", False),
         )
 
         headers = {**headers, **anthropic_headers}
