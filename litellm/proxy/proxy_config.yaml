@@ -1,16 +1,22 @@
 model_list:
-  - model_name: openai/*
+  - model_name: gemini/*
     litellm_params:
-      model:  openai/*
-      api_key: os.environ/OPENAI_API_KEY
-    model_info:
-      health_check_model: openai/gpt-4o-mini
-  - model_name: anthropic/*
+      model: gemini/*
+      api_key: os.environ/GEMINI_API_KEY
+  - model_name: "anthropic/*"
     litellm_params:
-      model: anthropic/*
+      model: "anthropic/*"
       api_key: os.environ/ANTHROPIC_API_KEY
-    model_info:
-      health_check_model: anthropic/claude-3-5-sonnet-20240620
 
 litellm_settings:
   callbacks: ["prometheus"]
+  prometheus_metrics_config:
+    # High-cardinality metrics with minimal labels
+    - group: "proxy_metrics"
+      metrics:
+        - "litellm_proxy_total_requests_metric"
+        - "litellm_proxy_failed_requests_metric"
+      include_labels:
+        - "hashed_api_key"
+        - "requested_model"
+        - "model_group"

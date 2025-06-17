@@ -446,7 +446,7 @@ def test_chat_completion_azure(mock_acompletion, client_no_auth):
     try:
         # Your test data
         test_data = {
-            "model": "azure/chatgpt-v-2",
+            "model": "azure/chatgpt-v-3",
             "messages": [
                 {"role": "user", "content": "write 1 sentence poem"},
             ],
@@ -457,7 +457,7 @@ def test_chat_completion_azure(mock_acompletion, client_no_auth):
         response = client_no_auth.post("/v1/chat/completions", json=test_data)
 
         mock_acompletion.assert_called_once_with(
-            model="azure/chatgpt-v-2",
+            model="azure/chatgpt-v-3",
             messages=[
                 {"role": "user", "content": "write 1 sentence poem"},
             ],
@@ -489,19 +489,19 @@ def test_openai_deployments_model_chat_completions_azure(
     try:
         # Your test data
         test_data = {
-            "model": "azure/chatgpt-v-2",
+            "model": "azure/chatgpt-v-3",
             "messages": [
                 {"role": "user", "content": "write 1 sentence poem"},
             ],
             "max_tokens": 10,
         }
 
-        url = "/openai/deployments/azure/chatgpt-v-2/chat/completions"
+        url = "/openai/deployments/azure/chatgpt-v-3/chat/completions"
         print(f"testing proxy server with Azure Request {url}")
         response = client_no_auth.post(url, json=test_data)
 
         mock_acompletion.assert_called_once_with(
-            model="azure/chatgpt-v-2",
+            model="azure/chatgpt-v-3",
             messages=[
                 {"role": "user", "content": "write 1 sentence poem"},
             ],
@@ -1040,9 +1040,6 @@ async def test_create_team_member_add(prisma_client, new_member_method):
         await team_member_add(
             data=team_member_add_request,
             user_api_key_dict=UserAPIKeyAuth(user_role="proxy_admin"),
-            http_request=Request(
-                scope={"type": "http", "path": "/user/new"},
-            ),
         )
 
         mock_client.assert_called()
@@ -1163,10 +1160,11 @@ async def test_create_team_member_add_team_admin(
     user = f"ishaan {uuid.uuid4().hex}"
     _team_id = "litellm-test-client-id-new"
     user_key = "sk-12345678"
+    team_admin = f"krrish {uuid.uuid4().hex}"
 
     valid_token = UserAPIKeyAuth(
         team_id=_team_id,
-        user_id=user,
+        user_id=team_admin,
         token=hash_token(user_key),
         last_refreshed_at=time.time(),
     )
@@ -1176,7 +1174,7 @@ async def test_create_team_member_add_team_admin(
         team_id=_team_id,
         blocked=False,
         last_refreshed_at=time.time(),
-        members_with_roles=[Member(role=user_role, user_id=user)],
+        members_with_roles=[Member(role=user_role, user_id=team_admin)],
         metadata={"guardrails": {"modify_guardrails": False}},
     )
 
@@ -1224,13 +1222,11 @@ async def test_create_team_member_add_team_admin(
             await team_member_add(
                 data=team_member_add_request,
                 user_api_key_dict=valid_token,
-                http_request=Request(
-                    scope={"type": "http", "path": "/user/new"},
-                ),
             )
         except HTTPException as e:
             if user_role == "user":
                 assert e.status_code == 403
+                return
             else:
                 raise e
 
@@ -1278,6 +1274,7 @@ async def test_user_info_team_list(prisma_client):
 
         try:
             await user_info(
+                request=MagicMock(),
                 user_id=None,
                 user_api_key_dict=UserAPIKeyAuth(
                     api_key="sk-1234", user_id="default_user_id"
@@ -1312,7 +1309,7 @@ async def test_add_callback_via_key(prisma_client):
     try:
         # Your test data
         test_data = {
-            "model": "azure/chatgpt-v-2",
+            "model": "azure/chatgpt-v-3",
             "messages": [
                 {"role": "user", "content": "write 1 sentence poem"},
             ],
@@ -1406,7 +1403,7 @@ async def test_add_callback_via_key_litellm_pre_call_utils(
     request._url = URL(url="/chat/completions")
 
     test_data = {
-        "model": "azure/chatgpt-v-2",
+        "model": "azure/chatgpt-v-3",
         "messages": [
             {"role": "user", "content": "write 1 sentence poem"},
         ],
@@ -1421,7 +1418,7 @@ async def test_add_callback_via_key_litellm_pre_call_utils(
 
     data = {
         "data": {
-            "model": "azure/chatgpt-v-2",
+            "model": "azure/chatgpt-v-3",
             "messages": [{"role": "user", "content": "write 1 sentence poem"}],
             "max_tokens": 10,
             "mock_response": "Hello world",
@@ -1521,7 +1518,7 @@ async def test_disable_fallbacks_by_key(disable_fallbacks_set):
 
     key_metadata = {"disable_fallbacks": disable_fallbacks_set}
     existing_data = {
-        "model": "azure/chatgpt-v-2",
+        "model": "azure/chatgpt-v-3",
         "messages": [{"role": "user", "content": "write 1 sentence poem"}],
     }
     data = LiteLLMProxyRequestSetup.add_key_level_controls(
@@ -1562,7 +1559,7 @@ async def test_add_callback_via_key_litellm_pre_call_utils_gcs_bucket(
     request._url = URL(url="/chat/completions")
 
     test_data = {
-        "model": "azure/chatgpt-v-2",
+        "model": "azure/chatgpt-v-3",
         "messages": [
             {"role": "user", "content": "write 1 sentence poem"},
         ],
@@ -1577,7 +1574,7 @@ async def test_add_callback_via_key_litellm_pre_call_utils_gcs_bucket(
 
     data = {
         "data": {
-            "model": "azure/chatgpt-v-2",
+            "model": "azure/chatgpt-v-3",
             "messages": [{"role": "user", "content": "write 1 sentence poem"}],
             "max_tokens": 10,
             "mock_response": "Hello world",
@@ -1695,7 +1692,7 @@ async def test_add_callback_via_key_litellm_pre_call_utils_langsmith(
     request._url = URL(url="/chat/completions")
 
     test_data = {
-        "model": "azure/chatgpt-v-2",
+        "model": "azure/chatgpt-v-3",
         "messages": [
             {"role": "user", "content": "write 1 sentence poem"},
         ],
@@ -1710,7 +1707,7 @@ async def test_add_callback_via_key_litellm_pre_call_utils_langsmith(
 
     data = {
         "data": {
-            "model": "azure/chatgpt-v-2",
+            "model": "azure/chatgpt-v-3",
             "messages": [{"role": "user", "content": "write 1 sentence poem"}],
             "max_tokens": 10,
             "mock_response": "Hello world",
@@ -2190,3 +2187,63 @@ async def test_get_ui_settings_spend_logs_threshold():
 
     # Clean up
     proxy_state.set_proxy_state_variable("spend_logs_row_count", 0)
+
+
+@pytest.mark.asyncio
+async def test_run_background_health_check_reflects_llm_model_list(monkeypatch):
+    """
+    Test that _run_background_health_check reflects changes to llm_model_list in each health check iteration.
+    """
+    import litellm.proxy.proxy_server as proxy_server
+    import copy
+
+    test_model_list_1 = [{"model_name": "model-a"}]
+    test_model_list_2 = [{"model_name": "model-b"}]
+    called_model_lists = []
+
+    async def fake_perform_health_check(model_list, details):
+        called_model_lists.append(copy.deepcopy(model_list))
+        return (["healthy"], ["unhealthy"])
+
+    monkeypatch.setattr(proxy_server, "health_check_interval", 1)
+    monkeypatch.setattr(proxy_server, "health_check_details", None)
+    monkeypatch.setattr(proxy_server, "llm_model_list", copy.deepcopy(test_model_list_1))
+    monkeypatch.setattr(proxy_server, "perform_health_check", fake_perform_health_check)
+    monkeypatch.setattr(proxy_server, "health_check_results", {})
+
+    async def fake_sleep(interval):
+        raise asyncio.CancelledError()
+
+    monkeypatch.setattr(asyncio, "sleep", fake_sleep)
+
+    try:
+        await proxy_server._run_background_health_check()
+    except asyncio.CancelledError:
+        pass
+
+    monkeypatch.setattr(proxy_server, "llm_model_list", copy.deepcopy(test_model_list_2))
+
+    try:
+        await proxy_server._run_background_health_check()
+    except asyncio.CancelledError:
+        pass
+
+    assert len(called_model_lists) >= 2
+    assert called_model_lists[0] == test_model_list_1
+    assert called_model_lists[1] == test_model_list_2
+
+
+def test_get_timeout_from_request():
+    from litellm.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+
+    headers = {
+        "x-litellm-timeout": "90",
+    }
+    timeout = LiteLLMProxyRequestSetup._get_timeout_from_request(headers)
+    assert timeout == 90
+
+    headers = {
+        "x-litellm-timeout": "90.5",
+    }
+    timeout = LiteLLMProxyRequestSetup._get_timeout_from_request(headers)
+    assert timeout == 90.5

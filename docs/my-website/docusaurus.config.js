@@ -44,7 +44,7 @@ const config = {
         path: './release_notes',
         routeBasePath: 'release_notes',
         blogTitle: 'Release Notes',
-        blogSidebarTitle: 'All Releases',
+        blogSidebarTitle: 'Releases',
         blogSidebarCount: 'ALL',
         postsPerPage: 'ALL',
         showReadingTime: false,
@@ -120,16 +120,16 @@ const config = {
             label: 'Docs',
           },
           {
-            sidebarId: 'tutorialSidebar',
+            sidebarId: 'integrationsSidebar',
             position: 'left',
-            label: 'Enterprise',
-            to: "docs/enterprise"
+            label: 'Integrations',
+            to: "docs/integrations"
           },
           {
             sidebarId: 'tutorialSidebar',
             position: 'left',
-            label: 'Hosted',
-            to: "docs/hosted"
+            label: 'Enterprise',
+            to: "docs/enterprise"
           },
           { to: '/release_notes', label: 'Release Notes', position: 'left' },
           {

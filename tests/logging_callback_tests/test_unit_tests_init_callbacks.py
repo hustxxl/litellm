@@ -18,9 +18,9 @@ from litellm._logging import verbose_logger
 from prometheus_client import REGISTRY, CollectorRegistry
 
 from litellm.integrations.lago import LagoLogger
+from litellm.integrations.deepeval import DeepEvalLogger
 from litellm.integrations.openmeter import OpenMeterLogger
 from litellm.integrations.braintrust_logging import BraintrustLogger
-from litellm.integrations.pagerduty.pagerduty import PagerDutyAlerting
 from litellm.integrations.galileo import GalileoObserve
 from litellm.integrations.langsmith import LangsmithLogger
 from litellm.integrations.literal_ai import LiteralAILogger
@@ -28,16 +28,35 @@ from litellm.integrations.prometheus import PrometheusLogger
 from litellm.integrations.datadog.datadog import DataDogLogger
 from litellm.integrations.datadog.datadog_llm_obs import DataDogLLMObsLogger
 from litellm.integrations.gcs_bucket.gcs_bucket import GCSBucketLogger
+from litellm.integrations.gcs_pubsub.pub_sub import GcsPubSubLogger
 from litellm.integrations.opik.opik import OpikLogger
 from litellm.integrations.opentelemetry import OpenTelemetry
 from litellm.integrations.mlflow import MlflowLogger
 from litellm.integrations.argilla import ArgillaLogger
+from litellm.integrations.deepeval.deepeval import DeepEvalLogger
+from litellm.integrations.s3_v2 import S3Logger
+from litellm.integrations.langfuse.langfuse_otel import LangfuseOtelLogger
+from litellm.integrations.anthropic_cache_control_hook import AnthropicCacheControlHook
+from litellm.integrations.vector_stores.bedrock_vector_store import BedrockVectorStore
 from litellm.integrations.langfuse.langfuse_prompt_management import (
     LangfusePromptManagement,
 )
 from litellm.integrations.azure_storage.azure_storage import AzureBlobStorageLogger
+from litellm.integrations.agentops import AgentOps
 from litellm.integrations.humanloop import HumanloopLogger
 from litellm.proxy.hooks.dynamic_rate_limiter import _PROXY_DynamicRateLimitHandler
+from litellm_enterprise.enterprise_callbacks.generic_api_callback import (
+    GenericAPILogger,
+)
+from litellm_enterprise.enterprise_callbacks.send_emails.resend_email import (
+    ResendEmailLogger,
+)
+from litellm_enterprise.enterprise_callbacks.send_emails.smtp_email import (
+    SMTPEmailLogger,
+)
+from litellm_enterprise.enterprise_callbacks.pagerduty.pagerduty import (
+    PagerDutyAlerting,
+)
 from unittest.mock import patch
 
 # clear prometheus collectors / registry
@@ -65,11 +84,23 @@ callback_class_str_to_classType = {
     # OTEL compatible loggers
     "logfire": OpenTelemetry,
     "arize": OpenTelemetry,
+    "langfuse_otel": OpenTelemetry,
+    "arize_phoenix": OpenTelemetry,
     "langtrace": OpenTelemetry,
     "mlflow": MlflowLogger,
     "langfuse": LangfusePromptManagement,
     "otel": OpenTelemetry,
     "pagerduty": PagerDutyAlerting,
+    "gcs_pubsub": GcsPubSubLogger,
+    "anthropic_cache_control_hook": AnthropicCacheControlHook,
+    "agentops": AgentOps,
+    "bedrock_vector_store": BedrockVectorStore,
+    "generic_api": GenericAPILogger,
+    "resend_email": ResendEmailLogger,
+    "smtp_email": SMTPEmailLogger,
+    "deepeval": DeepEvalLogger,
+    "s3_v2": S3Logger,
+    "langfuse_otel": LangfuseOtelLogger,
 }
 
 expected_env_vars = {
@@ -88,8 +119,17 @@ expected_env_vars = {
     "LOGFIRE_TOKEN": "logfire_token",
     "ARIZE_SPACE_KEY": "arize_space_key",
     "ARIZE_API_KEY": "arize_api_key",
+    "PHOENIX_API_KEY": "phoenix_api_key",
     "ARGILLA_API_KEY": "argilla_api_key",
     "PAGERDUTY_API_KEY": "pagerduty_api_key",
+    "GCS_PUBSUB_TOPIC_ID": "gcs_pubsub_topic_id",
+    "GCS_PUBSUB_PROJECT_ID": "gcs_pubsub_project_id",
+    "CONFIDENT_API_KEY": "confident_api_key",
+    "LITELM_ENVIRONMENT": "development",
+    "AWS_BUCKET_NAME": "aws_bucket_name",
+    "AWS_SECRET_ACCESS_KEY": "aws_secret_access_key",
+    "AWS_ACCESS_KEY_ID": "aws_access_key_id",
+    "AWS_REGION": "aws_region",
 }
 
 
@@ -193,8 +233,8 @@ async def use_callback_in_llm_call(
         elif used_in == "success_callback":
             print(f"litellm.success_callback: {litellm.success_callback}")
             print(f"litellm._async_success_callback: {litellm._async_success_callback}")
-            assert isinstance(litellm.success_callback[1], expected_class)
-            assert len(litellm.success_callback) == 2  # ["lago", LagoLogger]
+            assert isinstance(litellm.success_callback[0], expected_class)
+            assert len(litellm.success_callback) == 1  # ["lago", LagoLogger]
             assert isinstance(litellm._async_success_callback[0], expected_class)
             assert len(litellm._async_success_callback) == 1
 
